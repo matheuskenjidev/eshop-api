@@ -1,0 +1,15 @@
+package br.com.eshop.api.payload;
+
+import br.com.eshop.api.model.Category;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CategoryResponse {
+    private List<CategoryDTO> content;
+}
