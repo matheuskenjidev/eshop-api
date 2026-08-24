@@ -1,5 +1,7 @@
 package br.com.eshop.api.service;
 
+import br.com.eshop.api.exceptions.APIException;
+import br.com.eshop.api.exceptions.ResourceNotFoundException;
 import br.com.eshop.api.model.Category;
 import br.com.eshop.api.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,25 +14,32 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl implements CategoryService{
 
-//    private List<Category> categories = new ArrayList<>();
-
     @Autowired
     private CategoryRepository categoryRepository;
 
     @Override
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findAll();
+        if(categories.isEmpty()) {
+            throw new APIException("nenhuma categoria cadastrada no momento");
+        }
+
+        return categories;
     }
 
     @Override
     public void createCategory(Category category) {
+        Category existingCategory = categoryRepository.findByCategoryName(category.getCategoryName());
+        if(existingCategory != null) {
+            throw new APIException("categoria com o nome " + category.getCategoryName() + " já existe");
+        }
         categoryRepository.save(category);
     }
 
     @Override
     public String deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "categoria nao encontrada, insira um id valido"));
+                .orElseThrow(() -> new ResourceNotFoundException("categoria", "Id", categoryId));
 
 
         categoryRepository.delete(category);
@@ -41,7 +50,7 @@ public class CategoryServiceImpl implements CategoryService{
     public Category updateCategory(Category category, Long categoryId) {
 
         Category savedCategory = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria nao encontrada, insira um id valido"));
+                .orElseThrow(() ->  new ResourceNotFoundException("Categoria", "Id", categoryId));
 
 
         category.setCategoryId(categoryId);

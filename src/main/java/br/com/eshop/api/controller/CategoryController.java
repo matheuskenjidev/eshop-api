@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -32,21 +31,13 @@ public class CategoryController {
 
     @DeleteMapping("/admin/categories/{categoryId}")
     public ResponseEntity<String> deleteCategory(@PathVariable Long categoryId) {
-        try {
             String status = categoryService.deleteCategory(categoryId);
-            return ResponseEntity.ok(status);
-        } catch (ResponseStatusException e) {
-            return new ResponseEntity<String>(e.getReason(), e.getStatusCode());
-        }
+            return new ResponseEntity<>(status, HttpStatus.OK);
     }
 
     @PutMapping("/public/categories/{categoryId}")
-    public ResponseEntity<String> updateCategory(@RequestBody Category category, @PathVariable Long categoryId) {
-        try {
+    public ResponseEntity<String> updateCategory(@Valid @RequestBody Category category, @PathVariable Long categoryId) {
             Category savedCategory = categoryService.updateCategory(category, categoryId);
             return new ResponseEntity<>("Categoria com o id " + categoryId + " atualizada", HttpStatus.OK);
-        }catch (ResponseStatusException e) {
-            return new ResponseEntity<String>(e.getReason(), e.getStatusCode());
-        }
     }
  }
