@@ -1,5 +1,6 @@
 package br.com.eshop.api.service;
 
+import br.com.eshop.api.exceptions.APIException;
 import br.com.eshop.api.exceptions.ResourceNotFoundException;
 import br.com.eshop.api.model.Category;
 import br.com.eshop.api.model.Product;
@@ -43,15 +44,28 @@ public class ProductServiceImpl implements ProductService{
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria(Category)", "com categoryId ", categoryId));
 
+        boolean isProductNotPresent = true;
 
-        Product product = modelMapper.map(productDTO, Product.class);
-        product.setImage("default.png");
-        product.setCategory(category);
-        double specialPrice = product.getPrice() -
-                (product.getDiscount() * 0.01) * product.getPrice();
-        product.setSpecialPrice(specialPrice);
-        Product savedProduct = productRepository.save(product);
-        return modelMapper.map(savedProduct, ProductDTO.class);
+        List<Product> products = category.getProducts();
+        for (Product product : products) {
+            if (product.getProductName().equals(productDTO.getProductName())) {
+                isProductNotPresent = false;
+                break;
+            }
+        }
+
+        if(isProductNotPresent) {
+            Product product = modelMapper.map(productDTO, Product.class);
+            product.setImage("default.png");
+            product.setCategory(category);
+            double specialPrice = product.getPrice() -
+                    (product.getDiscount() * 0.01) * product.getPrice();
+            product.setSpecialPrice(specialPrice);
+            Product savedProduct = productRepository.save(product);
+            return modelMapper.map(savedProduct, ProductDTO.class);
+        } else {
+            throw new APIException("esse produto ja existe");
+        }
     }
 
     @Override
@@ -60,6 +74,10 @@ public class ProductServiceImpl implements ProductService{
        List<ProductDTO> productDTOS = products.stream()
                .map(product -> modelMapper.map(product, ProductDTO.class))
                .toList();
+
+       if(products.isEmpty()) {
+           throw new APIException("nenhum produto esta cadastrado!!!");
+       }
 
        ProductReponse productReponse = new ProductReponse();
        productReponse.setContent(productDTOS);
