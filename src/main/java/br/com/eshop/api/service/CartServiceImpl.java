@@ -154,13 +154,22 @@ public class CartServiceImpl implements CartService{
             throw new APIException("Produto(Product): " + product.getProductName() + " nao esta colocado no carrinho");
         }
 
-        cartItem.setProductPrice(product.getSpecialPrice());
-        cartItem.setQuantity(cartItem.getQuantity() + quantity);
-        cartItem.setDiscount(product.getDiscount());
-        cart.setTotalPrice(cart.getTotalPrice() + (cartItem.getProductPrice() * quantity));
-        cartRepository.save(cart);
-        CartItem updatedItem = cartItemRepository.save(cartItem);
+        int newQuantity = cartItem.getQuantity() + quantity;
+        if(newQuantity < 0) {
+            throw new APIException("a quantidade restante desse produto nao pode ser nagativa");
+        }
 
+        if(newQuantity == 0) {
+            deleteProductFromCart(cartId, productId);
+        } else {
+            cartItem.setProductPrice(product.getSpecialPrice());
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+            cartItem.setDiscount(product.getDiscount());
+            cart.setTotalPrice(cart.getTotalPrice() + (cartItem.getProductPrice() * quantity));
+            cartRepository.save(cart);
+        }
+
+        CartItem updatedItem = cartItemRepository.save(cartItem);
         if(updatedItem.getQuantity() == 0) {
             cartItemRepository.deleteById(updatedItem.getCartItemId());
         }
@@ -177,6 +186,24 @@ public class CartServiceImpl implements CartService{
 
         cartDTO.setProducts(productStream.toList());
         return cartDTO;
+    }
+
+    @Transactional
+    @Override
+    public String deleteProductFromCart(Long cartId, Long productId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Carrinho(Cart)", "cartId", cartId));
+
+        CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cartId, productId);
+        if(cartItem == null) {
+            throw new ResourceNotFoundException("Produto(Product)", "productId", productId);
+        }
+
+        cart.setTotalPrice(cart.getTotalPrice() -
+                (cartItem.getProductPrice() * cartItem.getQuantity()));
+
+        cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
+        return "Produto(Product): " + cartItem.getProduct().getProductName() + " foi removido do carrinho";
     }
 
     private Cart createCart() {
