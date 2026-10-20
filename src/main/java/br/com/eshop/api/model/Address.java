@@ -3,9 +3,7 @@ package br.com.eshop.api.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +12,8 @@ import java.util.List;
 @Table(name = "addresses")
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,24 +28,24 @@ public class Address {
     private String buildingName;
 
     @NotBlank
-    @Size(min = 4, message = "o nome da cidade deve ter mais de 4 caracteres")
+    @Size(min = 4, message = "o nome da cidade deve ter mais de 3 caracteres")
     private String city;
 
     @NotBlank
-    @Size(min = 2, message = "o nome do estado deve ter mais de 4 caracteres")
+    @Size(min = 2, message = "o nome do estado deve ter mais de 1 caracteres")
     private String state;
 
     @NotBlank
-    @Size(min = 2, message = "o nome da cidade deve ter mais de 4 caracteres")
+    @Size(min = 2, message = "o nome da cidade deve ter mais de 1 caracteres")
     private String country;
 
     @NotBlank
-    @Size(min = 6, message = "o cep deve ter mais de 6 caracteres")
+    @Size(min = 5, message = "o cep deve ter mais de 4 caracteres")
     private String pincode;
 
-    @ToString.Exclude
-    @ManyToMany(mappedBy = "addresses")
-    private List<User> users = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Address(String pincode, String country, String city, String state, String buildingName, String street) {
         this.pincode = pincode;
