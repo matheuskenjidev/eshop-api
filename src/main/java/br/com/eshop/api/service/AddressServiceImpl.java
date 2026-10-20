@@ -1,5 +1,6 @@
 package br.com.eshop.api.service;
 
+import br.com.eshop.api.exceptions.ResourceNotFoundException;
 import br.com.eshop.api.model.Address;
 import br.com.eshop.api.model.User;
 import br.com.eshop.api.payload.AddressDTO;
@@ -41,5 +42,15 @@ public class AddressServiceImpl implements AddressService{
                 .collect(Collectors.toList());
 
         return addressDTOList;
+    }
+
+    @Override
+    public AddressDTO getAddressById(Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Endereco(Address)", "addressId", addressId));
+
+        AddressDTO addressDTO = modelMapper.map(address, AddressDTO.class);
+
+        return addressDTO;
     }
 }
