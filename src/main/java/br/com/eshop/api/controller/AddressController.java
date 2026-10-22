@@ -1,5 +1,6 @@
 package br.com.eshop.api.controller;
 
+import br.com.eshop.api.model.Address;
 import br.com.eshop.api.model.User;
 import br.com.eshop.api.payload.AddressDTO;
 import br.com.eshop.api.service.AddressService;
@@ -43,4 +44,22 @@ public class AddressController {
         return new ResponseEntity<>(addressDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/users/addresses")
+    public ResponseEntity<List<AddressDTO>> getAddressesByUser() {
+        User user = authUtil.loggedInUser();
+        List<AddressDTO> addressDTOList = addressService.getAdressesByUser(user);
+        return new ResponseEntity<>(addressDTOList, HttpStatus.OK);
+    }
+
+    @PutMapping("/addresses/{addressId}")
+    public ResponseEntity<AddressDTO> updateAddressById (@PathVariable Long addressId, @RequestBody AddressDTO addressDTO) {
+        AddressDTO updatedAddress = addressService.updateAddressById(addressId, addressDTO);
+        return new ResponseEntity<>(updatedAddress, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/addresses/{addressId}")
+    public ResponseEntity<String> deleteAddressById(@PathVariable Long addressId) {
+        String status = addressService.deleteAddress(addressId);
+        return new ResponseEntity<>(status, HttpStatus.OK);
+    }
 }
